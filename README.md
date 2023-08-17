@@ -29,4 +29,6 @@
 
 
 ### Current status
-- Locust master and workers will stop once the time is up, and the pod will stop. However, in order to keep 1 replica alive, K8s will restart the deployments, making the locust keep starting and stopping.
+- Locust master and workers will stop once the time is up, and the pod will stop. However, in order to keep 1 replica alive, K8s will restart the deployments, making the locust keep starting and stopping. So we have to come up with some method to run the stress test exactly once and then close the Locust and AI service.
+
+
