@@ -1,0 +1,14 @@
+FROM locustio/locust:2.16.1
+
+WORKDIR /locust-test
+ 
+COPY test_case.py .
+COPY run-gui.sh .
+
+# Set script to be executable
+User root
+RUN chmod 755 run-gui.sh
+User locust
+
+# Start Locust using LOCUS_OPTS environment variable
+ENTRYPOINT ["bash", "./run-gui.sh"]
