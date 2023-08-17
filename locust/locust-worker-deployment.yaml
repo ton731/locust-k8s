@@ -23,5 +23,3 @@ spec:
               value: worker
             - name: LOCUST_MASTER_URL
               value: locust-master
-            - name: TARGET_HOST
-              value: http://frontend-internal

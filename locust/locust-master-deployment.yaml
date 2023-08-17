@@ -21,12 +21,7 @@ spec:
           env:
             - name: LOCUST_MODE
               value: master
-            - name: TARGET_HOST
-              value: http://frontend-internal
           ports:
-            - name: loc-master-web
-              containerPort: 8089
-              protocol: TCP
             - name: loc-master-p1
               containerPort: 5557
               protocol: TCP

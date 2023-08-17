@@ -17,22 +17,3 @@ spec:
       name: loc-master-p2
   selector:
     app: locust-master
-
----
-kind: Service
-apiVersion: v1
-metadata:
-  name: locust-master-ui
-  namespace: tony-test
-  labels:
-    app: locust-master
-spec:
-  ports:
-    - port: 8089
-      targetPort: loc-master-web
-      protocol: TCP
-      name: loc-master-web
-      nodePort: 30627
-  selector:
-    app: locust-master
-  type: NodePort
