@@ -29,6 +29,6 @@ spec:
     spec:
       containers:
         - name: fake-ai-service
-          image: ton731/fake-ai-service:latest
+          image: gcr.io/jubo-ai/ai-bedsore@sha256:c4fe7bf8f28cec6b3d5e7f1d8d48487b729fb91eb83733992c462c69253a2d5c
           ports:
             - containerPort: 80
