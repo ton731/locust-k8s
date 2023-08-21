@@ -15,10 +15,3 @@ class QuickstartUser(HttpUser):
     def root(self):
         self.client.get("/")
 
-    @task
-    def predict(self):
-        print("*** Start getting /predict endpoint")
-        self.client.post("/predict", json={
-            "text": "tonyyy",
-        })
-
