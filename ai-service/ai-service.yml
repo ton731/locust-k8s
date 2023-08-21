@@ -33,13 +33,12 @@ spec:
           ports:
             - containerPort: 5000
           volumeMounts:
-            - name: gcp-service-key-volume
-              mountPath: /app/gcloud-service-key.json
-              subPath: gcloud-service-key.json
+            - name: gcp-service-key
+              mountPath: /app
           env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /app/gcloud-service-key.json
       volumes:
-        - name: gcp-service-key-volume
+        - name: gcp-service-key
           secret:
             secretName: gcp-service-key
