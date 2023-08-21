@@ -1,15 +1,14 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: batch/v1
+kind: Job
 metadata:
   name: locust-worker
   namespace: tony-test
   labels:
     name: locust-worker
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: locust-worker
+  completions: 1  # Number of worker pods to run
+  parallelism: 1  # Number of pods to run in parallel (can be adjusted)
+  backoffLimit: 0  # Disable retries on pod failure
   template:
     metadata:
       labels:
@@ -23,3 +22,4 @@ spec:
               value: worker
             - name: LOCUST_MASTER_URL
               value: locust-master
+      restartPolicy: Never

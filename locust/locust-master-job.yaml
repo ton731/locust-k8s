@@ -1,15 +1,14 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: batch/v1
+kind: Job
 metadata:
   name: locust-master
   namespace: tony-test
   labels:
     name: locust-master
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: locust-master
+  completions: 1  # Number of master pods to run
+  parallelism: 1  # Number of pods to run in parallel (can be adjusted)
+  backoffLimit: 0  # Disable retries on pod failure
   template:
     metadata:
       labels:
@@ -28,3 +27,4 @@ spec:
             - name: loc-master-p2
               containerPort: 5558
               protocol: TCP
+      restartPolicy: Never
