@@ -8,8 +8,8 @@ spec:
     app: fake-ai-service
   ports:
     - protocol: TCP
-      port: 80
-      targetPort: 80
+      port: 5000
+      targetPort: 5000
       appProtocol: http
 ---
 apiVersion: apps/v1
@@ -31,4 +31,15 @@ spec:
         - name: fake-ai-service
           image: gcr.io/jubo-ai/ai-bedsore@sha256:c4fe7bf8f28cec6b3d5e7f1d8d48487b729fb91eb83733992c462c69253a2d5c
           ports:
-            - containerPort: 80
+            - containerPort: 5000
+          volumeMounts:
+            - name: gcp-service-key-volume
+              mountPath: /app/gcloud-service-key.json
+              subPath: gcloud-service-key.json
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /app/gcloud-service-key.json
+      volumes:
+        - name: gcp-service-key-volume
+          secret:
+            secretName: gcp-service-key
