@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: locust-master
-  namespace: tony-test
+  namespace: stress-test
   labels:
     name: locust-master
 spec:

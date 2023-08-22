@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fake-ai-service
+  namespace: stress-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fake-ai-service
+  template:
+    metadata:
+      labels:
+        app: fake-ai-service
+    spec:
+      containers:
+        - name: fake-ai-service
+          image: ton731/fake-ai-service:latest
+          ports:
+            - containerPort: 80
