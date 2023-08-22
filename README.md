@@ -1,6 +1,15 @@
 # How to run stress test with Locust in Kubernetes?
 
 
+## 1. Automatically
+The script will create a namespace and run the AI and Locust service. Once the status of locust master & worker become `complete`, the script will turn off the services and delete the namespace to set the Kubernetes cluster back to the original condition.
+```python
+python master-script.py
+```
+
+---
+## 2. Manually
+
 ### Start the stress test
 - Create a namespace in K8s cluster.
     - `kubectl create namespace stress-test`
