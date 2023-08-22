@@ -2,7 +2,7 @@ kind: Service
 apiVersion: v1
 metadata:
   name: locust-master
-  namespace: tony-test
+  namespace: stress-test
   labels:
     app: locust-master
 spec:

@@ -3,7 +3,7 @@
 
 ### Start the stress test
 - Create a namespace in K8s cluster.
-    - `kubectl create namespace tony-test`
+    - `kubectl create namespace stress-test`
 - Start the fake AI service.
     - `kubectl apply -f ai-service`
 - Start the Locust master and worker.
@@ -12,11 +12,11 @@
 
 ### Debugging
 - Get the target pod names.
-    - `kubectl get pod -n tony-test`
+    - `kubectl get pod -n stress-test`
 - Print the logs of the pod.
-    - `kubectl logs -n tony-test <pod-name>`
+    - `kubectl logs -n stress-test <pod-name>`
 - Get into the pod environment.
-    - `kubectl exec -it -n tony-test <pod-name> -- /bin/bash`
+    - `kubectl exec -it -n stress-test <pod-name> -- /bin/bash`
 
 
 ### Remove the services
@@ -25,7 +25,7 @@
 - Remove the Locust master and worker.
     - `kubectl delete -f locust`
 - Delete the namespace.
-    - `kubectl delete namespace tony-test`
+    - `kubectl delete namespace stress-test`
 
 
 ### Current status

@@ -1,5 +1,5 @@
 LOCUST="locust"
-TARGET_HOST="http://fake-ai-service.tony-test.svc.cluster.local"
+TARGET_HOST="http://fake-ai-service.stress-test.svc.cluster.local"
 LOCUS_OPTS="-f /locust-test/test_case.py --headless --host=$TARGET_HOST"
 LOCUST_MODE=${LOCUST_MODE:-standalone}
 
