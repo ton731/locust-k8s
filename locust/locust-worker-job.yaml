@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: locust-worker
-          image: ton731/locust-cli
+          image: spector3702/locust-cli:latest
           env:
             - name: LOCUST_MODE
               value: worker

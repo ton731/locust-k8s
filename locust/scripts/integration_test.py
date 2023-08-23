@@ -9,6 +9,7 @@ import os
 import csv
 import json
 import time
+import yaml
 import requests
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -28,10 +29,14 @@ duration = 20
 interval = 2
 
 
-
 def get_csv_path():
     return f"reports/result"
 
+
+def load_config(config_path):
+    with open(config_path, 'r') as file:
+        config = yaml.safe_load(file)
+    return config
 
 
 def plot_total_requests_per_seconds(data, pdf_pages):
@@ -125,9 +130,9 @@ def merge_csv_files(csv_path, start_time):
     df_filtered.to_csv(csv_path, index=False)
 
 
-def get_request_response(endpoint):
-    listen_host = "http://0.0.0.0"
-    router = "/predict"
+def get_request_response(config, endpoint):
+    listen_host = config['listen_host']
+    router = config['router']
 
     url = listen_host + router + endpoint
 
@@ -139,10 +144,8 @@ def get_request_response(endpoint):
     return response_text
 
 
-def check_app_version():
- 
-    health_check = get_request_response('/health-check')
-
+def check_app_version(config):
+    health_check = get_request_response(config, '/health-check')
     app_version = health_check['app_version']
         
     return app_version
