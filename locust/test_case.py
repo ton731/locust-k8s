@@ -2,6 +2,8 @@ from locust import HttpUser, task, between
 from locust import events, runners
 import time
 
+from integration_test import compute_failure_csv
+
 
 @events.quitting.add_listener
 def _(environment, **kw):
@@ -10,7 +12,8 @@ def _(environment, **kw):
         time.sleep(10)
         return
     
-    print("***** Uploading results to GCS...")
+    failure_csv_path = compute_failure_csv()
+    print(failure_csv_path)
     
 
 

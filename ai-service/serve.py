@@ -1,6 +1,7 @@
 from typing import Union, Dict, Any, AnyStr
 from fastapi import FastAPI
 import random
+import uvicorn
 
 
 app = FastAPI()
@@ -30,3 +31,13 @@ def resc_usage():
         "memory_percent": random.randint(1, 100),
         "memory_used (bytes)": random.randint(50, 100000),
     }
+
+
+def main():
+    uvicorn.run("serve:app", host="0.0.0.0", port=80)
+
+
+if __name__ == "__main__":
+    main()
+
+
