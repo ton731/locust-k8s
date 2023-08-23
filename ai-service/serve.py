@@ -1,6 +1,6 @@
 from typing import Union, Dict, Any, AnyStr
 from fastapi import FastAPI
-from starlette.responses import JSONResponse
+import random
 
 
 app = FastAPI()
@@ -25,8 +25,8 @@ def health_check():
 @app.get("/predict/resc-usage")
 def resc_usage():
     return {
-        "cpu_percent": 10,
-        "cpu_count": 2,
-        "memory_percent": 12,
-        "memory_used (bytes)": 123,
+        "cpu_percent": random.randint(1, 100),
+        "cpu_count": random.randint(1, 3),
+        "memory_percent": random.randint(1, 100),
+        "memory_used (bytes)": random.randint(50, 100000),
     }

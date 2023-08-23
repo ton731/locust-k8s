@@ -6,8 +6,8 @@ metadata:
   labels:
     name: locust-worker
 spec:
-  completions: 1  # Number of worker pods to run
-  parallelism: 1  # Number of pods to run in parallel (can be adjusted)
+  completions: 2  # Number of worker pods to run
+  parallelism: 2  # Number of pods to run in parallel (can be adjusted)
   backoffLimit: 0  # Disable retries on pod failure
   template:
     metadata:

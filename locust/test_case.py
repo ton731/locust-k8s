@@ -1,11 +1,17 @@
 from locust import HttpUser, task, between
-import logging
-from locust import events
+from locust import events, runners
+import time
 
 
 @events.quitting.add_listener
 def _(environment, **kw):
+    if not isinstance(environment.runner, runners.MasterRunner):
+        print("***** Locust worker, not responsible of handling the result...")
+        time.sleep(10)
+        return
+    
     print("***** Uploading results to GCS...")
+    
 
 
 class QuickstartUser(HttpUser):
