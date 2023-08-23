@@ -6,12 +6,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
 COPY test_case.py .
-COPY run-cli.sh .
-
-# Set script to be executable
-User root
-RUN chmod 755 run-cli.sh
-User locust
+COPY run.py .
 
 # Start Locust using LOCUS_OPTS environment variable
-ENTRYPOINT ["bash", "./run-cli.sh"]
+ENTRYPOINT ["python", "./run.py"]
