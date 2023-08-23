@@ -1,7 +1,5 @@
 from typing import Union, Dict, Any, AnyStr
 from fastapi import FastAPI
-from starlette.responses import JSONResponse
-
 
 app = FastAPI()
 
