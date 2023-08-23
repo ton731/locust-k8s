@@ -6,19 +6,13 @@ Usage:
         -t <test_type>
 """
 import os
-import json
-import yaml
 import csv
-import subprocess
+import json
 import time
-import argparse
 import requests
-import re
-import sys
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from multiprocessing import Process
 from matplotlib.backends.backend_pdf import PdfPages
 from datetime import datetime, timedelta
 from tqdm import tqdm
@@ -28,15 +22,15 @@ from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 
-from linkinpark.lib.common.secret_accessor import SecretAccessor
-from linkinpark.lib.common.gcs_helper import GcsHelper
 
 
-# def get_csv_path(config_path):
-#     dirname = os.path.join(os.path.dirname(config_path), 'reports')
-#     os.makedirs(dirname, exist_ok=True)
-#     server_name = os.path.normpath(config_path).split(os.sep)[-2]
-#     return f"{dirname}/{server_name}"
+duration = 20
+interval = 2
+
+
+
+def get_csv_path():
+    return f"reports/result"
 
 
 
@@ -69,8 +63,8 @@ def plot_response_times(data, pdf_pages):
     plt.close()
 
 
-def create_charts_pdf(config_path):
-    csv_path = get_csv_path(config_path) + "_stats_history.csv"
+def create_charts_pdf():
+    csv_path = get_csv_path() + "_stats_history.csv"
     data = pd.read_csv(csv_path)
     pdf_path = os.path.join(os.path.dirname(csv_path), 'charts.pdf')
 
@@ -82,23 +76,12 @@ def create_charts_pdf(config_path):
     return pdf_path
 
 
-def get_secret():
-    credentials_file = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
-    if not credentials_file:
-        raise ValueError(
-            "GOOGLE_APPLICATION_CREDENTIALS environment variable is not set.")
-    
-    accessor = SecretAccessor()
-    username = accessor.access_secret('aiServerAuth-integrationTest-email')
-    password = accessor.access_secret('aiServerAuth-integrationTest-password')
-    return username, password
 
-
-def compute_rescusage_csv(test_type):
-    duration_seconds = config[test_type]['duration']
-    interval_seconds = config[test_type]['interval']
+def compute_rescusage_csv():
+    duration_seconds = duration
+    interval_seconds = interval
     total_requests = duration_seconds / interval_seconds
-    csv_path = os.path.join(os.path.dirname(config_path), 'reports/merge_reports.csv')
+    csv_path = os.path.join('reports/merge_reports.csv')
 
     with open(csv_path, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
@@ -120,8 +103,8 @@ def compute_rescusage_csv(test_type):
     return csv_path
 
 
-def merge_csv_files(config_path, csv_path, start_time):
-    locust_csv = get_csv_path(config_path) + "_stats_history.csv"
+def merge_csv_files(csv_path, start_time):
+    locust_csv = get_csv_path() + "_stats_history.csv"
     locust_df = pd.read_csv(locust_csv)
     resc_df = pd.read_csv(csv_path)
 
@@ -143,35 +126,26 @@ def merge_csv_files(config_path, csv_path, start_time):
 
 
 def get_request_response(endpoint):
-    listen_host = "127.0.0.1:80"
+    listen_host = "http://0.0.0.0"
+    router = "/predict"
 
-    url = listen_host + endpoint
+    url = listen_host + router + endpoint
 
     response = requests.get(url)
     if not response:   
         raise Exception("Request get empty response, maybe due to server not correctly running on k8s.")
     
-    return response
+    response_text = json.loads(response.text)
+    return response_text
 
 
 def check_app_version():
  
     health_check = get_request_response('/health-check')
+
     app_version = health_check['app_version']
         
     return app_version
-
-
-# def upload_pdf(pdf_path, config_path, start_time):
-#     server_name = os.path.normpath(config_path).split(os.sep)[-2]
-#     bucket_name = 'jubo-ai-serving'
-#     format_time = start_time.strftime("%Y-%m-%d_%H:%M:%S")
-#     blob_name = f'integration_test_reports/{server_name}/{server_name}_{format_time}.pdf'
-
-#     gcs_helper = GcsHelper()
-#     gcs_helper.upload_file_to_bucket(bucket_name, blob_name, pdf_path)
-
-#     return f'gs://{bucket_name}/{blob_name}'
 
 
 def csv_to_pdf(csv_path):
@@ -216,13 +190,13 @@ def create_version_pdf(app_version, reports_path):
     return output_path
 
 
-def compute_failure_csv(config_path):
-    stats_csv_path = get_csv_path(config_path) + "_stats.csv"
+def compute_failure_csv():
+    stats_csv_path = get_csv_path() + "_stats.csv"
     stats_df = pd.read_csv(stats_csv_path)
     request_count = stats_df['Request Count'].values[0]
     failure_count = stats_df['Failure Count'].values[0]
 
-    failures_csv_path = get_csv_path(config_path) + "_failures.csv"
+    failures_csv_path = get_csv_path() + "_failures.csv"
     failures_df = pd.read_csv(failures_csv_path)
 
     failures_df['Failure Percentage'] = ((failures_df['Occurrences'] / failure_count) * 100).round(3)
@@ -235,8 +209,8 @@ def compute_failure_csv(config_path):
     return new_failure_csv_path
 
 
-def compute_exception_csv(config_path):
-    exceptions_csv_path = get_csv_path(config_path) + "_exceptions.csv"
+def compute_exception_csv():
+    exceptions_csv_path = get_csv_path() + "_exceptions.csv"
     return exceptions_csv_path
 
 
@@ -262,27 +236,46 @@ def compute_final_report(csv_paths, app_version, charts_pdf_path):
 
 
 
-def main(config_path, test_type):
+def main():
 
-    
-    merge_csv_path = compute_rescusage_csv(config_path, token, test_type)
+    app_version = check_app_version()
 
+    merge_csv_path = compute_rescusage_csv()
 
-    merge_csv_files(config_path, merge_csv_path, start_time)
+    start_time = datetime.now()
+    merge_csv_files(merge_csv_path, start_time)
 
     csv_paths = []
     csv_paths.append(merge_csv_path)
-    csv_paths.append(compute_failure_csv(config_path))
-    csv_paths.append(compute_exception_csv(config_path))
-    charts_pdf_path = create_charts_pdf(config_path)
+    csv_paths.append(compute_failure_csv())
+    csv_paths.append(compute_exception_csv())
+    charts_pdf_path = create_charts_pdf()
 
     final_report_pdf = compute_final_report(csv_paths, app_version, charts_pdf_path)
     
-    gcs_path = upload_pdf(final_report_pdf, config_path, start_time)
-    print(f'PDF report save locally: {final_report_pdf}')
-    print(f'PDF report save on GCS: {gcs_path}')
+    # gcs_path = upload_pdf(final_report_pdf, config_path, start_time)
+    # print(f'PDF report save locally: {final_report_pdf}')
+    # print(f'PDF report save on GCS: {gcs_path}')
 
     print('|======== integration test ends =======|')
 
-    return [final_report_pdf, gcs_path]
+
+
+
+if __name__ == "__main__":
+
+    app_version = check_app_version()
+    print("App version:", app_version)
+    print()
+
+    resource_usage = get_request_response('/resc-usage')
+    print("resource usage")
+    print(resource_usage)
+
+    csv_path = compute_rescusage_csv()
+
+
+
+
+
 
