@@ -2,7 +2,7 @@ from locust import HttpUser, task, between
 from locust import events, runners
 import time
 
-from integration_test import compute_failure_csv
+from integration_test import compute_failure_csv, compute_exception_csv
 
 
 @events.quitting.add_listener
@@ -12,8 +12,9 @@ def _(environment, **kw):
         time.sleep(10)
         return
     
-    failure_csv_path = compute_failure_csv()
-    print(failure_csv_path)
+    csv_paths = []
+    csv_paths.append(compute_failure_csv())
+    csv_paths.append(compute_exception_csv())
     
 
 

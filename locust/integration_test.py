@@ -184,10 +184,18 @@ def create_version_pdf(app_version, reports_path):
     output_path = os.path.join(reports_path, 'app_version.pdf')
     doc = SimpleDocTemplate(output_path, pagesize=landscape(letter))
     styles = getSampleStyleSheet()
-    title_text = f"App Version: {app_version}"
-    story = [Paragraph(title_text, styles['Title'])]  # Create a title with the app_version
+
+    title_text = f"Server Name: fake-ai-service\n"
+    subtitle_text = f"App Version: {app_version}\n"
+    
+    story = [
+        Paragraph(title_text, styles['Title']),
+        Paragraph(subtitle_text, styles['Title'])
+    ]
     doc.build(story)
+    
     return output_path
+
 
 
 def compute_failure_csv():
@@ -233,6 +241,17 @@ def compute_final_report(csv_paths, app_version, charts_pdf_path):
     merger.close()
 
     return final_report_pdf
+
+
+def remove_files_except_final_report(final_report_pdf):
+    reports_path = os.path.dirname(final_report_pdf)
+    filename = os.path.basename(final_report_pdf)
+    files = os.listdir(reports_path)
+    
+    for file in files:
+        file_path = os.path.join(reports_path, file)
+        if os.path.isfile(file_path) and file != filename:
+            os.remove(file_path)
 
 
 
