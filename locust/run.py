@@ -63,7 +63,6 @@ def run_locust():
         # Start a new process for resource monitoring only if LOCUST_MODE is "master"
         resource_monitor_process = multiprocessing.Process(target=run_resource_monitoring)
         resource_monitor_process.start()
-        resource_monitor_process.join()  # Wait for the resource monitor process to finish
 
     elif LOCUST_MODE == "worker":
         LOCUST_MASTER_URL = os.environ.get("LOCUST_MASTER_URL", "")
