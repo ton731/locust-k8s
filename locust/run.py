@@ -1,11 +1,10 @@
 import subprocess
 import os
 import multiprocessing
-import datetime
+from datetime import datetime
 import json
 import requests
 import csv
-import tqdm
 import time
 
 
@@ -28,15 +27,16 @@ def run_resource_monitoring():
     duration_seconds = 150
     interval_seconds = 5
     total_requests = duration_seconds / interval_seconds
-    csv_path = "merge_reports.csv"
+    csv_path = "ai_service_resource_usage.csv"
 
     with open(csv_path, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(['Timestamp', 'CPU_Percent', 'CPU_Count', 'Memory_Percent', 'Memory_Used_Bytes'])
 
-        for _ in tqdm(range(int(total_requests)), desc="Processing", ncols=100, mininterval=1):
+        for _ in range(int(total_requests)):
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             resource_usage = get_request_response('/resc-usage')
+            print("***** Got resource usage from the AI Service...")
             
             writer.writerow([
                 timestamp, 
@@ -48,7 +48,6 @@ def run_resource_monitoring():
             time.sleep(interval_seconds)
 
     print("***** Finished monitoring...")
-    return csv_path
 
 
 def run_locust():
