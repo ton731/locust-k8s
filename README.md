@@ -13,6 +13,8 @@ python master-script.py
 ### Start the stress test
 - Create a namespace in K8s cluster.
     - `kubectl create namespace stress-test`
+- Create gcp-service-key under namespace
+    - `kubectl create secret generic gcp-service-key --from-file=gcloud-service-key.json=<path_to_gcloud-service-key.json> -n stress-test`
 - Start the fake AI service.
     - `kubectl apply -f ai-service`
 - Start the Locust master and worker.
