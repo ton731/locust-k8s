@@ -20,6 +20,8 @@ spec:
           env:
             - name: LOCUST_MODE
               value: master
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /app/gcloud-service-key.json
           ports:
             - name: loc-master-p1
               containerPort: 5557
@@ -27,4 +29,11 @@ spec:
             - name: loc-master-p2
               containerPort: 5558
               protocol: TCP
+          volumeMounts:
+            - name: gcp-service-key
+              mountPath: /app
       restartPolicy: Never
+      volumes:
+        - name: gcp-service-key
+          secret:
+            secretName: gcp-service-key

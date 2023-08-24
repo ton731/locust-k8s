@@ -1,15 +1,10 @@
-FROM locustio/locust:2.16.1
+FROM gcr.io/jubo-ai/ai-integration_test:latest
 
-User root
 RUN apt-get update && \
     apt-get install -y jq && \
-    apt-get install -y python3-pip && \
     pip3 install yq
 
 WORKDIR /locust-test
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
 COPY scripts/integration_test.py .
 COPY scripts/test_case.py .

@@ -22,7 +22,9 @@ from reportlab.lib.pagesizes import letter, landscape
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
+from urllib.parse import urlparse
 
+from linkinpark.lib.common.gcs_helper import GcsHelper
 
 
 duration = 20
@@ -183,12 +185,13 @@ def csv_to_pdf(csv_path):
     return csv_to_pdf_path
 
 
-def create_version_pdf(app_version, reports_path):
+def create_version_pdf(app_version, reports_path, config):
     output_path = os.path.join(reports_path, 'app_version.pdf')
     doc = SimpleDocTemplate(output_path, pagesize=landscape(letter))
     styles = getSampleStyleSheet()
 
-    title_text = f"Server Name: fake-ai-service\n"
+    server_name = get_server_name(config)
+    title_text = f"Server Name: {server_name}\n"
     subtitle_text = f"App Version: {app_version}\n"
     
     story = [
@@ -199,6 +202,13 @@ def create_version_pdf(app_version, reports_path):
     
     return output_path
 
+
+def get_server_name(config):
+    listen_host = config['listen_host']
+    parsed_url = urlparse(listen_host)
+    domain_parts = parsed_url.netloc.split('.')
+    server_name = domain_parts[0]
+    return server_name
 
 
 def compute_failure_csv():
@@ -225,13 +235,13 @@ def compute_exception_csv():
     return exceptions_csv_path
 
 
-def compute_final_report(csv_paths, app_version, charts_pdf_path):
+def compute_final_report(csv_paths, app_version, charts_pdf_path, config):
     pdf_paths = []
     for csv_path in csv_paths:
         pdf_paths.append(csv_to_pdf(csv_path))
 
     reports_path = os.path.dirname(pdf_paths[0])
-    app_version_pdf_path = create_version_pdf(app_version, reports_path)
+    app_version_pdf_path = create_version_pdf(app_version, reports_path, config)
     merger = PdfMerger()
     merger.append(app_version_pdf_path)
 
@@ -256,6 +266,18 @@ def remove_files_except_final_report(final_report_pdf):
         if os.path.isfile(file_path) and file != filename:
             os.remove(file_path)
 
+
+def upload_pdf(pdf_path, config_path, start_time):
+    config = load_config(config_path)
+    server_name = get_server_name(config)
+    bucket_name = 'jubo-ai-serving'
+    format_time = start_time.strftime("%Y-%m-%d_%H:%M:%S")
+    blob_name = f'stress_test_reports/{server_name}/{server_name}_{format_time}.pdf'
+
+    gcs_helper = GcsHelper()
+    gcs_helper.upload_file_to_bucket(bucket_name, blob_name, pdf_path)
+
+    return f'gs://{bucket_name}/{blob_name}'
 
 
 def main():

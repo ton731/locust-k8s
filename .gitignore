@@ -161,5 +161,6 @@ cython_debug/
 
 locust/scripts/run-local.sh
 locust/scripts/local_case.py
+locust/scripts/local-config.yaml
 *.csv
 *.pdf

@@ -22,4 +22,13 @@ spec:
               value: worker
             - name: LOCUST_MASTER_URL
               value: locust-master
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /app/gcloud-service-key.json
+          volumeMounts:
+            - name: gcp-service-key
+              mountPath: /app
       restartPolicy: Never
+      volumes:
+        - name: gcp-service-key
+          secret:
+            secretName: gcp-service-key
