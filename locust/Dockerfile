@@ -15,4 +15,4 @@ COPY scripts/run-cli.sh .
 RUN chmod 755 run-cli.sh
 
 # Start Locust using LOCUS_OPTS environment variable
-ENTRYPOINT ["bash", "./run-cli.sh"]
+ENTRYPOINT ["python", "./run.py"]

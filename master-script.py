@@ -145,6 +145,7 @@ def main():
     
     # start the AI and Locust service
     apply_from_folder("ai-service")
+    time.sleep(30)
     apply_from_folder("locust")
     
     # monitor the status of locust
