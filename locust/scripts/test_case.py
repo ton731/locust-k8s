@@ -3,7 +3,13 @@ from locust import events, runners
 from datetime import datetime
 import time
 
-from integration_test import load_config, compute_failure_csv, compute_exception_csv, create_charts_pdf, check_app_version, compute_final_report, remove_files_except_final_report, upload_pdf
+from integration_test import load_config, compute_failure_csv, compute_exception_csv, create_charts_pdf, check_app_version, compute_final_report, remove_files_except_final_report, upload_pdf, merge_csv_files
+
+
+@events.init_command_line_parser.add_listener
+def init_parser(parser):
+    parser.add_argument('--usage_csv', help="specify the path of usage csv")
+    parser.add_argument('--start_time', help="specify the start time of locust")
 
 
 @events.quitting.add_listener
@@ -13,12 +19,14 @@ def _(environment, **kw):
         time.sleep(10)
         return
     
-    start_time = datetime.now()
+    start_time_str = environment.parsed_options.start_time
+    start_time = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S.%f")
     config_path = 'config.yaml'
     config = load_config(config_path)
     app_version = check_app_version(config)
 
     csv_paths = []
+    csv_paths.append(merge_csv_files(environment.parsed_options.usage_csv, start_time))
     csv_paths.append(compute_failure_csv())
     csv_paths.append(compute_exception_csv())
     charts_pdf_path = create_charts_pdf()

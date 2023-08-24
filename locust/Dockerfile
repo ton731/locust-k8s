@@ -1,18 +1,11 @@
 FROM gcr.io/jubo-ai/ai-integration_test:latest
 
-RUN apt-get update && \
-    apt-get install -y jq && \
-    pip3 install yq
-
 WORKDIR /locust-test
 
 COPY scripts/integration_test.py .
 COPY scripts/test_case.py .
 COPY scripts/config.yaml .
-COPY scripts/run-cli.sh .
-
-# Set script to be executable
-RUN chmod 755 run-cli.sh
+COPY scripts/run.py .
 
 # Start Locust using LOCUS_OPTS environment variable
 ENTRYPOINT ["python", "./run.py"]
