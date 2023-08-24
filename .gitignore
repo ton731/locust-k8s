@@ -159,7 +159,7 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-locust/scripts/run-local.sh
+locust/scripts/run-local.py
 locust/scripts/local_case.py
 locust/scripts/local-config.yaml
 *.csv

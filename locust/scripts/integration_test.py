@@ -84,11 +84,11 @@ def create_charts_pdf():
 
 
 
-def compute_rescusage_csv():
-    duration_seconds = duration
-    interval_seconds = interval
+def compute_rescusage_csv(config, completion_event=None):
+    duration_seconds = config['duration']
+    interval_seconds = config['interval']
     total_requests = duration_seconds / interval_seconds
-    csv_path = os.path.join('reports/merge_reports.csv')
+    csv_path = get_csv_path() + '_usage.csv'
 
     with open(csv_path, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
@@ -96,7 +96,7 @@ def compute_rescusage_csv():
 
         for _ in tqdm(range(int(total_requests)), desc="Processing", ncols=100, mininterval=1):
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            resource_usage = get_request_response('/resc-usage')
+            resource_usage = get_request_response(config, '/resc-usage')
             
             writer.writerow([
                 timestamp, 
@@ -106,6 +106,9 @@ def compute_rescusage_csv():
                 resource_usage['memory_used (bytes)']
             ])
             time.sleep(interval_seconds)
+
+    if completion_event:
+        completion_event.set()
 
     return csv_path
 
@@ -130,6 +133,8 @@ def merge_csv_files(csv_path, start_time):
     ]
     df_filtered = merged_df[columns_to_keep]
     df_filtered.to_csv(csv_path, index=False)
+
+    return csv_path
 
 
 def get_request_response(config, endpoint):
