@@ -1,6 +1,7 @@
 import os
 import yaml
 import time
+import base64
 from kubernetes import client, config
 
 
@@ -18,6 +19,23 @@ def create_namespace(namespace_name):
         print(f"Namespace {namespace_name} created.")
     except client.rest.ApiException as e:
         print(f"Error creating namespace {namespace_name}: {e}")
+
+
+def create_gcp_service_key(key_file_path, secret_name, namespace):
+    with open(key_file_path, 'rb') as file:
+            key_data = file.read()
+        
+    encoded_key_data = base64.b64encode(key_data).decode('utf-8')
+    secret_metadata = client.V1ObjectMeta(name=secret_name, namespace=namespace)
+    secret = client.V1Secret(data={"gcloud-service-key.json": encoded_key_data}, metadata=secret_metadata)
+    
+    try:
+        core_v1.create_namespaced_secret(namespace=namespace, body=secret)
+        print(f"Secret {secret_name} created in namespace {namespace}.")
+    except client.rest.ApiException as e:
+        print(f"Error creating secret {secret_name} in namespace {namespace}: {e}")
+    
+    return secret_name
     
     
 def delete_namespace(namespace_name):
@@ -121,6 +139,9 @@ def monitor_job_status(*job_names):
 def main():
     # create the namespace
     create_namespace(namespace_name)
+
+    # create the gcp service key in namespace
+    create_gcp_service_key('sa-skyshih.json', 'gcp-service-key', namespace_name)
     
     # start the AI and Locust service
     apply_from_folder("ai-service")

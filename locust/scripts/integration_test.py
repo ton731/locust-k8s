@@ -9,6 +9,7 @@ import os
 import csv
 import json
 import time
+import yaml
 import requests
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -21,17 +22,23 @@ from reportlab.lib.pagesizes import letter, landscape
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
+from urllib.parse import urlparse
 
+from linkinpark.lib.common.gcs_helper import GcsHelper
 
 
 duration = 20
 interval = 2
 
 
-
 def get_csv_path():
     return f"reports/result"
 
+
+def load_config(config_path):
+    with open(config_path, 'r') as file:
+        config = yaml.safe_load(file)
+    return config
 
 
 def plot_total_requests_per_seconds(data, pdf_pages):
@@ -77,11 +84,11 @@ def create_charts_pdf():
 
 
 
-def compute_rescusage_csv():
-    duration_seconds = duration
-    interval_seconds = interval
+def compute_rescusage_csv(config, completion_event=None):
+    duration_seconds = config['duration']
+    interval_seconds = config['interval']
     total_requests = duration_seconds / interval_seconds
-    csv_path = os.path.join('reports/merge_reports.csv')
+    csv_path = get_csv_path() + '_usage.csv'
 
     with open(csv_path, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
@@ -89,7 +96,7 @@ def compute_rescusage_csv():
 
         for _ in tqdm(range(int(total_requests)), desc="Processing", ncols=100, mininterval=1):
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            resource_usage = get_request_response('/resc-usage')
+            resource_usage = get_request_response(config, '/resc-usage')
             
             writer.writerow([
                 timestamp, 
@@ -99,6 +106,9 @@ def compute_rescusage_csv():
                 resource_usage['memory_used (bytes)']
             ])
             time.sleep(interval_seconds)
+
+    if completion_event:
+        completion_event.set()
 
     return csv_path
 
@@ -124,10 +134,12 @@ def merge_csv_files(csv_path, start_time):
     df_filtered = merged_df[columns_to_keep]
     df_filtered.to_csv(csv_path, index=False)
 
+    return csv_path
 
-def get_request_response(endpoint):
-    listen_host = "http://0.0.0.0"
-    router = "/predict"
+
+def get_request_response(config, endpoint):
+    listen_host = config['listen_host']
+    router = config['router']
 
     url = listen_host + router + endpoint
 
@@ -139,10 +151,8 @@ def get_request_response(endpoint):
     return response_text
 
 
-def check_app_version():
- 
-    health_check = get_request_response('/health-check')
-
+def check_app_version(config):
+    health_check = get_request_response(config, '/health-check')
     app_version = health_check['app_version']
         
     return app_version
@@ -180,14 +190,30 @@ def csv_to_pdf(csv_path):
     return csv_to_pdf_path
 
 
-def create_version_pdf(app_version, reports_path):
+def create_version_pdf(app_version, reports_path, config):
     output_path = os.path.join(reports_path, 'app_version.pdf')
     doc = SimpleDocTemplate(output_path, pagesize=landscape(letter))
     styles = getSampleStyleSheet()
-    title_text = f"App Version: {app_version}"
-    story = [Paragraph(title_text, styles['Title'])]  # Create a title with the app_version
+
+    server_name = get_server_name(config)
+    title_text = f"Server Name: {server_name}\n"
+    subtitle_text = f"App Version: {app_version}\n"
+    
+    story = [
+        Paragraph(title_text, styles['Title']),
+        Paragraph(subtitle_text, styles['Title'])
+    ]
     doc.build(story)
+    
     return output_path
+
+
+def get_server_name(config):
+    listen_host = config['listen_host']
+    parsed_url = urlparse(listen_host)
+    domain_parts = parsed_url.netloc.split('.')
+    server_name = domain_parts[0]
+    return server_name
 
 
 def compute_failure_csv():
@@ -214,13 +240,13 @@ def compute_exception_csv():
     return exceptions_csv_path
 
 
-def compute_final_report(csv_paths, app_version, charts_pdf_path):
+def compute_final_report(csv_paths, app_version, charts_pdf_path, config):
     pdf_paths = []
     for csv_path in csv_paths:
         pdf_paths.append(csv_to_pdf(csv_path))
 
     reports_path = os.path.dirname(pdf_paths[0])
-    app_version_pdf_path = create_version_pdf(app_version, reports_path)
+    app_version_pdf_path = create_version_pdf(app_version, reports_path, config)
     merger = PdfMerger()
     merger.append(app_version_pdf_path)
 
@@ -234,6 +260,29 @@ def compute_final_report(csv_paths, app_version, charts_pdf_path):
 
     return final_report_pdf
 
+
+def remove_files_except_final_report(final_report_pdf):
+    reports_path = os.path.dirname(final_report_pdf)
+    filename = os.path.basename(final_report_pdf)
+    files = os.listdir(reports_path)
+    
+    for file in files:
+        file_path = os.path.join(reports_path, file)
+        if os.path.isfile(file_path) and file != filename:
+            os.remove(file_path)
+
+
+def upload_pdf(pdf_path, config_path, start_time):
+    config = load_config(config_path)
+    server_name = get_server_name(config)
+    bucket_name = 'jubo-ai-serving'
+    format_time = start_time.strftime("%Y-%m-%d_%H:%M:%S")
+    blob_name = f'stress_test_reports/{server_name}/{server_name}_{format_time}.pdf'
+
+    gcs_helper = GcsHelper()
+    gcs_helper.upload_file_to_bucket(bucket_name, blob_name, pdf_path)
+
+    return f'gs://{bucket_name}/{blob_name}'
 
 
 def main():

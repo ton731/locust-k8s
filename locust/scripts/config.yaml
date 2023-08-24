@@ -1,0 +1,6 @@
+listen_host: http://fake-ai-service.stress-test.svc.cluster.local
+router: /predict
+num_user: 1000
+spawn_rate: 100
+duration: 60
+interval: 5
