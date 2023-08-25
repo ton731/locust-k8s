@@ -1,7 +1,7 @@
 import os
 import yaml
 import time
-from kubernetes import client, config
+from kubernetes import client, config, watch
 
 
 namespace_name = "stress-test"
@@ -59,7 +59,22 @@ def apply_from_folder(folder_path):
             yaml_path = os.path.join(folder_path, filename)
             apply_from_file(yaml_path)
                   
-            
+
+def await_for_running(deployment_name):
+    label_selector = f"app={deployment_name}"
+    w = watch.Watch()
+    for event in w.stream(core_v1.list_namespaced_pod, namespace_name, label_selector=label_selector):
+        pod = event['object']
+        pod_name = pod.metadata.name
+        pod_phase = pod.status.phase
+
+        if pod_phase == "Running":
+            print(f"Pod {pod_name} is running.")
+            break
+        else:
+            print(f"Pod {pod_name} is in phase: {pod_phase}")
+
+
 def delete_from_file(yaml_path):
     with open(yaml_path, "r") as f:
         resource_yaml = f.read()
@@ -124,7 +139,7 @@ def main():
     
     # start the AI and Locust service
     apply_from_folder("ai-service")
-    time.sleep(30)
+    await_for_running("fake-ai-service")
     apply_from_folder("locust")
     
     # monitor the status of locust
